@@ -101,6 +101,15 @@ def out_dir():
     return "/output"
 
 
+def verify_written(target, blob):
+    """Read the file back and confirm it is the same bytes we validated."""
+    with open(target, "rb") as handle:
+        written = handle.read()
+    if written != blob:
+        raise BadImage("written file differs from the validated image")
+    return hashlib.sha256(written).hexdigest()
+
+
 def main():
     with open(BUNDLED, "rb") as handle:
         blob = handle.read()
@@ -110,8 +119,9 @@ def main():
     target = os.path.join(folder, "entry.png")
     with open(target, "wb") as handle:
         handle.write(blob)
+    digest = verify_written(target, blob)
     print("wrote %s (%d bytes)" % (target, len(blob)))
-    print("sha256 %s" % hashlib.sha256(blob).hexdigest())
+    print("sha256 %s (verified after write)" % digest)
     return 0
 
 
