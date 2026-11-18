@@ -111,16 +111,20 @@ def verify_written(target, blob):
 
 
 def main():
-    with open(BUNDLED, "rb") as handle:
-        blob = handle.read()
-    inspect(blob)
+    try:
+        with open(BUNDLED, "rb") as handle:
+            blob = handle.read()
+    except FileNotFoundError:
+        print("bundled image missing: %s" % BUNDLED, file=sys.stderr)
+        return 2
+    width, height = inspect(blob)
     folder = out_dir()
     os.makedirs(folder, exist_ok=True)
     target = os.path.join(folder, "entry.png")
     with open(target, "wb") as handle:
         handle.write(blob)
     digest = verify_written(target, blob)
-    print("wrote %s (%d bytes)" % (target, len(blob)))
+    print("wrote %s (%dx%d, %d bytes)" % (target, width, height, len(blob)))
     print("sha256 %s (verified after write)" % digest)
     return 0
 
